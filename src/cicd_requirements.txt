@@ -1,0 +1,7 @@
+pytest
+pylint
+pymysql
+moto
+boto3
+pandas
+aws_lambda_powertools

@@ -1,0 +1,47 @@
+# CONVERSIONS THAT WILL BE DONE BY GITHUB ACTIONS CI/CD
+# PlaceholderToFunctionWithoutAlphaNum -> Name of the repo without the -, to be in line with AWS naming obligations
+#e.g: PlaceholderToFunctionWithoutAlphaNum = aslambdapytemplate
+
+# PlaceHolderToRepoName -> Name of the repo with the -, to be used as lambda function name
+#e.g:  PlaceHolderToRepoName = as-lambda-py-template
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: > # Describe what your function does here, will be show in CloudFormation.
+  This function options selectbox render screen.
+
+Globals:
+  Function:
+    Timeout: 5 
+    MemorySize: 256
+
+Resources:
+  PlaceholderToFunctionWithoutAlphaNum:
+    Type: AWS::Serverless::Function  # More info about Function Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Properties:
+      FunctionName: PlaceholderToRepoName # Name of the lambda function
+      CodeUri: ../src/code/
+      Handler: app.lambda_handler
+      Runtime: python3.10
+      Description:  This function options selectbox render screen.
+      Architectures:
+        - x86_64
+      # Optional Properties
+      Layers: 
+        - arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python310:7
+        - arn:aws:lambda:us-east-1:170291931902:layer:pymysql-layer:2
+        - arn:aws:lambda:us-east-1:017000801446:layer:AWSLambdaPowertoolsPythonV2:46
+
+      Role: arn:aws:iam::170291931902:role/RhVix_general_role # É utilizado um arn(identificador de um re)
+      # Tags: # Put here the tags you want to use
+      # Policies: # Put here the policies you want to use
+
+
+Outputs: # These are the outputs of the stack
+  PlaceholderToFunctionWithoutAlphaNum:
+    Description: "Lambda Function Created."
+    Value: !GetAtt PlaceholderToFunctionWithoutAlphaNum.Arn
+    Export: # Export the ARN of the lambda function to be used by other stacks
+      Name: PlaceholderToFunctionWithoutAlphaNumArn
+  PlaceholderToFunctionWithoutAlphaNumIamRole: # This is the role that will be created and used by the lambda function if you don't specify one
+    Description: "IAM Role created."
+    Value: !GetAtt PlaceholderToFunctionWithoutAlphaNum.Arn
