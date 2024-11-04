@@ -1,11 +1,11 @@
 """
 Folder containing some fixtures of AWS services mocked in moto library
 """
+
 from unittest.mock import Mock
 import pytest
 from moto import mock_dynamodb, mock_ssm, mock_cognitoidp
 import boto3
-import pymysql
 
 
 def mock_context():
@@ -73,6 +73,10 @@ def mock_ssm_parameters():
             Value="RhVix_dev",
             Type="String",
             Overwrite=True,
+        )
+
+        ssm.put_parameter(
+            Name="/rhvix/test/rds_port", Value="3306", Type="String", Overwrite=True
         )
         yield ssm
 

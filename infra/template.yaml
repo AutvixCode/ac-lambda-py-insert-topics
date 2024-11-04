@@ -7,7 +7,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: > # Describe what your function does here, will be show in CloudFormation.
-  This function options selectbox render screen.
+  This function used to create all the topics in the database for to employee permission.
 
 Globals:
   Function:

@@ -1,4 +1,5 @@
 """This module is responsible for updating the employee database with the new data"""
+
 import json
 import pandas as pd
 from aws_lambda_powertools import Logger
@@ -11,45 +12,17 @@ except ImportError as e:
 logger = Logger()
 
 
-def build_query(**kwargs):
+def build_query():
     """Builds the SQL query based on the provided parameters"""
-    # Basic SQL SELECT statement
-    query = "SELECT distinct centro_de_custo,ordem_servico,tipo_atendimento FROM respostas_planilha"
+    sql_employee = """
+    SELECT id_colaborador, permissao FROM dados_colaboradores
+    WHERE ativo_rhvix = 1
+    OR permissao IN ('Supervisor', 'admin');
+    """
 
-    # Conditions based on the provided parameters
-    conditions = []
+    sql_topics = "SELECT idtopico_manual, permissao FROM topico_manual"
 
-    # Date range filtering
-    conditions.append(
-        f"""data_registrada BETWEEN '{kwargs['init_date']}' AND '{kwargs['fin_date']}'"""
-    )
-
-    # Collaborators filtering (assuming the column name is 'collaborator')
-    if kwargs["email"] != [] and kwargs["email"][0] != "":
-        if len(kwargs["email"]) == 1 and kwargs["email"][0] != "":
-            collaborator_condition = f"email = '{kwargs['email'][0]}'"
-        else:
-            collaborator_condition = " OR ".join(
-                [f"email = '{col}'" for col in kwargs["email"]]
-            )
-        conditions.append(f"({collaborator_condition})")
-
-    # Partition number filtering (assuming the column name is 'partition')
-    if kwargs["os"] not in ["", " "]:
-        conditions.append(f"ordem_servico = '{kwargs['os']}'")
-
-    if kwargs["cc"] not in ["", " "]:
-        conditions.append(f"centro_de_custo = '{kwargs['cc']}'")
-
-    if kwargs["type_acti"] not in ["", " "]:
-        conditions.append(f"tipo_atendimento = '{kwargs['type_acti']}'")
-    # Combining all conditions using 'AND'
-    if conditions:
-        query += " WHERE " + " AND ".join(conditions)
-
-    # You can add more clauses like ORDER BY, GROUP BY, etc., if needed
-
-    return query
+    return sql_employee, sql_topics
 
 
 @logger.inject_lambda_context
@@ -57,41 +30,40 @@ def lambda_handler(event, context):  # pylint: disable=unused-argument
     """
     This function is responsible for updating the employee database with the new data
     """
-    environment = event["stageVariables"]["environment"]
-    event_body = json.loads(event["body"])
+    try:
+        environment = event["stageVariables"]["environment"]
+    except KeyError:
+        return {"statusCode": 400, "body": "Environment not found."}
+
     conn = connect(environment)
     if conn is None:
         return {"statusCode": 500, "body": "Unable to connect to database."}
 
-    query = build_query(
-        init_date=event_body["initial_date"],
-        fin_date=event_body["final_date"],
-        email=event_body["email"],
-        os=event_body["os"],
-        cc=event_body["cc"],
-        type_acti=event_body["type_activity"],
-    )
-    print(query)
-    cursor = conn.cursor()
-    cursor.execute(query)
-    result = cursor.fetchall()
-    if len(result) == 0:
-        conn.close()
-        df_empty_values = pd.DataFrame(
-            [
-                ["", "", ""],
-            ],
-            columns=["centro_de_custo", "ordem_servico", "tipo_atendimento"],
-        )
-        # Converter o DataFrame para um dicionário
-        df_empty_values_dict = df_empty_values.to_dict(orient="records")
-        return {"statusCode": 200, "body": json.dumps(df_empty_values_dict)}
-    conn.close()
-    df = pd.DataFrame(
-        result, columns=["centro_de_custo", "ordem_servico", "tipo_atendimento"]
-    )
+    query_employee, query_topics = build_query()
 
-    # Converter o DataFrame para um dicionário
-    df_dict = df.to_dict(orient="records")
+    df_employee = pd.read_sql_query(query_employee, conn)
+    employees = df_employee.to_dict(orient="records")
 
-    return {"statusCode": 200, "body": json.dumps(df_dict)}
+    df_topics = pd.read_sql_query(query_topics, conn)
+    topics = df_topics.to_dict(orient="records")
+
+    new_cursor = conn.cursor()
+
+    for employee in employees:
+        for topic in topics:
+            print(employee, topic)
+
+            if employee["permissao"].lower() in topic["permissao"].lower():
+                new_cursor.execute(
+                    """
+                    INSERT INTO leitura_topico_manual (id_colaborador, id_topico, manual_lido) 
+                    VALUES (%s, %s, %s)
+                    """,
+                    (employee["id_colaborador"], topic["idtopico_manual"], 0),
+                )
+
+    conn.commit()
+    new_cursor.close()
+
+
+    return {"statusCode": 200, "body": "Data inserted successfully."}

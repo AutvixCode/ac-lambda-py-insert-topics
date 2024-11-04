@@ -1,7 +1,7 @@
+pandas==2.2.1
 pytest
 pylint
 pymysql
-moto
+moto==4.2.12
 boto3
-pandas
 aws_lambda_powertools
