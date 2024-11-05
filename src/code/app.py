@@ -10,6 +10,24 @@ except ImportError as e:
     from connect_to_db import connect
 
 logger = Logger()
+# NAMES MANUAL TOPICS
+
+NAME_MANUAL = {
+    "1": ["COMO REGISTRAR O PONTO", "RELATÓRIO INDIVIDUAL", "CONSOLIDADO"],
+    "2": [
+        "RELATÓRIOS",
+        "BANCO DE HORAS",
+        "QUANTITATIVO DE HORAS",
+        "ALOCAÇÕES POR CENTRO DE CUSTO",
+        "HORAS EXTRAS PAGAS",
+    ],
+    "3": ["ACERTO DE BANCO DE HORAS", "COMO REGISTRAR AS FÉRIAS", "CONSOLIADO"],
+    "4": [
+        "CADASTRAR, ATUALIZAR E DELETAR USUÁRIO",
+        "CADASTRAR, ATUALIZAR E DELETAR FERIADOS",
+        "CADASTRAR, ATUALIZAR E DELETAR CENTRO DE CUSTO",
+    ],
+}
 
 
 def build_query():
@@ -20,7 +38,7 @@ def build_query():
     OR permissao IN ('Supervisor', 'admin');
     """
 
-    sql_topics = "SELECT idtopico_manual, permissao FROM topico_manual"
+    sql_topics = "SELECT id_topico, permissao FROM topico_manual"
 
     return sql_employee, sql_topics
 
@@ -54,16 +72,16 @@ def lambda_handler(event, context):  # pylint: disable=unused-argument
             print(employee, topic)
 
             if employee["permissao"].lower() in topic["permissao"].lower():
-                new_cursor.execute(
-                    """
-                    INSERT INTO leitura_topico_manual (id_colaborador, id_topico, manual_lido) 
-                    VALUES (%s, %s, %s)
-                    """,
-                    (employee["id_colaborador"], topic["idtopico_manual"], 0),
-                )
+                for elem in NAME_MANUAL[topic["id_topico"]]:
+                    new_cursor.execute(
+                        """
+                        INSERT INTO leitura_topico_manual (id_colaborador, id_topico, manual_lido, manual) 
+                        VALUES (%s, %s, %s)
+                        """,
+                        (employee["id_colaborador"], topic["id_topico"], 0, elem),
+                    )
 
     conn.commit()
     new_cursor.close()
-
 
     return {"statusCode": 200, "body": "Data inserted successfully."}

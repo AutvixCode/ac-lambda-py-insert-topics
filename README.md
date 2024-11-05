@@ -1,6 +1,8 @@
 # ac-lambda-py-template
 Template created to serve as the default start point of all lambda function in Autvix Code.
 
+## PARA USAR ESSA LAMBDA É NECESSÁRIO EXECUTAR UM TEST MANDANDO STAGE COMO PROD, PARA OS DADOS SEREM INSERIDOS EM PRODUÇÃO  
+
 ### Directory structure
 ```
 .
