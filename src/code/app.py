@@ -75,9 +75,9 @@ def lambda_handler(event, context):  # pylint: disable=unused-argument
                 for elem in NAME_MANUAL[topic["id_topico"]]:
                     new_cursor.execute(
                         """
-                        INSERT INTO leitura_topico_manual (id_colaborador, 
+                        INSERT INTO leitura_manual (id_colaborador, 
                         id_topico, manual_lido, manual) 
-                        VALUES (%s, %s, %s)
+                        VALUES (%s, %s, %s, %s)
                         """,
                         (employee["id_colaborador"], topic["id_topico"], 0, elem),
                     )
