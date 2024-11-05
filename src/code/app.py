@@ -38,7 +38,7 @@ def build_query():
     OR permissao IN ('Supervisor', 'admin');
     """
 
-    sql_topics = "SELECT id_topico, permissao FROM topico_manual"
+    sql_topics = "SELECT id_topico, permissao FROM topico"
 
     return sql_employee, sql_topics
 
