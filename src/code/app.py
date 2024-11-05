@@ -15,7 +15,7 @@ logger = Logger()
 def build_query():
     """Builds the SQL query based on the provided parameters"""
     sql_employee = """
-    SELECT id_colaborador, permissao FROM dados_colaboradores
+    SELECT DISTINCT id_colaborador, permissao FROM dados_colaboradores
     WHERE ativo_rhvix = 1
     OR permissao IN ('Supervisor', 'admin');
     """
